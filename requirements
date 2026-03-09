@@ -5,3 +5,4 @@ lxml
 requests
 seaborn
 scipy
+statsmodels
