@@ -32,20 +32,19 @@ print('dict_stock is ready!')
 sample = hs300_code_list[:5]
 vol = 100  # 股
 
-def run_portfolio_strategy(time_begin, time_end, portfolio=sample, initial_capital=100000):
+def run_portfolio_strategy(time_begin, time_end, portfolio=sample, initial_capital=200000):
     import matplotlib.pyplot as plt
-    daily_value = []
-    sery = pd.date_range(start=time_begin, end=time_end, freq='B', normalize=True)
+    t = pd.date_range(start=time_begin, end=time_end, freq='B', normalize=True)
 
-    # 初始化每只股票的持仓（以股数为单位）
-    positions = {cod: 0 for cod in portfolio}
+    # positions = {cod: pd.DataFrame([],index=t,columns=['date','price','vol']) for cod in portfolio}  # 每个个股动态持仓记录
+    cum_return = pd.Series(np.zeros(len(t)), index=t)  # 累计收益率数组
+    vol_sum = {cod: 0 for cod in portfolio}  # 个股动态持仓数量(股)
+    cost = {cod: 0.00 for cod in portfolio}  # 个股动态持仓成本(元)
 
-    for current_date in sery:
-        daily_delta = 0.0
+    for current_date in t:
+        delta = 0
         for cod in portfolio:
             df_stock = dict_stock.get(cod)
-            if df_stock is None:
-                continue
             try:
                 row = df_stock.loc[current_date]
             except KeyError:
@@ -53,39 +52,27 @@ def run_portfolio_strategy(time_begin, time_end, portfolio=sample, initial_capit
 
             cross_val = int(row['cross']) if not pd.isna(row['cross']) else 0
             price = float(row['close'])
-
-            if cross_val == 1:  # 买入：只有买入时增加持仓并记录现金流出
-                positions[cod] += vol
-                daily_delta -= price * vol  # 买入为现金流出
+            if cross_val == 1:  # 买入
+                vol_sum[cod] += vol
+                cost[cod] = (cost[cod]*(vol_sum[cod]-vol) + price*vol)/vol_sum[cod]   # 更新持仓成本
                 print(f" 在 {current_date.date()} 买入 {cod}, 价格 {price}")
-            elif cross_val == -1:  # 卖出：仅在有足够持仓时卖出
-                if positions.get(cod) >= vol:
-                    positions[cod] -= vol
-                    daily_delta += price * vol  # 卖出为现金流入
+            elif cross_val == -1:  # 卖出
+                if  vol_sum[cod] >= vol:
+                    vol_sum[cod] -= vol
+                    cost[cod] = (cost[cod]*(vol_sum[cod]+vol) - price*vol)/vol_sum[cod] if vol_sum[cod] > 0 else 0  # 更新持仓成本
                     print(f" 在 {current_date.date()} 卖出 {cod}, 价格 {price}")
                 else:
-                    # 忽略无仓位的卖出信号（可选打印）
-                    # print(f" 在 {current_date.date()} 忽略卖出 {cod}（无仓位）")
                     pass
-        daily_value.append(daily_delta)
 
-    cum_cash = pd.Series(np.cumsum(daily_value), index=sery)
-    port_value = initial_capital + cum_cash
-    ret_pct = (port_value / initial_capital - 1) * 100
-    fig, ax1 = plt.subplots(figsize=(10, 5))
-    ax1.plot(port_value.index, port_value, color='skyblue', label='Portfolio Value')
-    ax1.set_ylabel('Value')
-    ax1.grid(True)
+            delta += vol_sum[cod]*(price-cost[cod])
+        cum_ret = delta/initial_capital
+        cum_return[current_date] = cum_ret
 
-    ax2 = ax1.twinx()
-    ax2.plot(ret_pct.index, ret_pct, color='orange', linestyle='--', label='Return %')
-    ax2.set_ylabel('Return (%)')
-
-    ax1.set_xlabel('Date')
-    ax1.set_title('Portfolio Value and Return')
-    fig.legend(loc='upper left', bbox_to_anchor=(0.1, 0.9))
+    plt.plot(cum_return.index, cum_return.values)
+    plt.title('Cumulative Return of Portfolio')
+    plt.xlabel('Date')
+    plt.ylabel('Cumulative Return')
+    plt.grid()
     plt.show()
-
-
 
 run_portfolio_strategy('20240101','20241231',sample)
