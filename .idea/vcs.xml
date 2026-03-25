@@ -2,5 +2,7 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/Package/LocalTradingSystem" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/Package/LocalTradingSystem/QUANTAXIS" vcs="Git" />
   </component>
 </project>
