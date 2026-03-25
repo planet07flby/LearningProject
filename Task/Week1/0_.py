@@ -37,7 +37,7 @@ def run_portfolio_strategy(time_begin, time_end, portfolio=sample, initial_capit
     t = pd.date_range(start=time_begin, end=time_end, freq='B', normalize=True)
 
     # positions = {cod: pd.DataFrame([],index=t,columns=['date','price','vol']) for cod in portfolio}  # 每个个股动态持仓记录
-    cum_return = pd.Series(np.zeros(len(t)), index=t)  # 累计收益率数组
+    cum_return = pd.Series(np.zeros(len(t)), index=t)  # 累计收益率(%)数组
     vol_sum = {cod: 0 for cod in portfolio}  # 个股动态持仓数量(股)
     cost = {cod: 0.00 for cod in portfolio}  # 个股动态持仓成本(元)
 
@@ -65,13 +65,13 @@ def run_portfolio_strategy(time_begin, time_end, portfolio=sample, initial_capit
                     pass
 
             delta += vol_sum[cod]*(price-cost[cod])
-        cum_ret = delta/initial_capital
+        cum_ret = delta/initial_capital*100
         cum_return[current_date] = cum_ret
 
     plt.plot(cum_return.index, cum_return.values)
     plt.title('Cumulative Return of Portfolio')
     plt.xlabel('Date')
-    plt.ylabel('Cumulative Return')
+    plt.ylabel('Cumulative Return(%)')
     plt.grid()
     plt.show()
 
