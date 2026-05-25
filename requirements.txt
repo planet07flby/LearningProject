@@ -8,3 +8,5 @@ scipy
 statsmodels
 tushare
 backtrader
+scikit-learn
+baostock

@@ -37,7 +37,7 @@ QAMarket - 市场预设和订单/持仓管理模块
 
 3. **持仓管理 (QAPosition)**:
    - QA_Position: 单标的精准仓位管理 (多空分离/今昨分离)
-   - QA_PMS: 多标的持仓管理系统 (Portfolio Management System)
+   - QA_PMS: 多标的持仓管理系统 (Portfolio Management Framework)
 
 ## 快速开始
 
